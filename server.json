@@ -1,26 +1,26 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.Enu27/japan-used-camera-market",
-  "title": "Japan Used Camera Market",
-  "description": "Search, price stats, price history and change alerts for Japan's used camera shops via Apify.",
+  "name": "io.github.Enu27/japan-used-market",
+  "title": "Japan Used Market (cameras, watches)",
+  "description": "Search, price stats, history and alerts for Japan's used camera and watch shops via Apify.",
   "repository": {
-    "url": "https://github.com/Enu27/japan-used-camera-mcp",
+    "url": "https://github.com/Enu27/japan-used-market-mcp",
     "source": "github"
   },
-  "websiteUrl": "https://apify.com/keiya_dev/japan-used-camera-market",
-  "version": "0.2.0",
+  "websiteUrl": "https://github.com/Enu27/japan-used-market-mcp",
+  "version": "0.3.0",
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "@keiya-dev/japan-used-camera-mcp",
-      "version": "0.2.0",
+      "identifier": "@keiya-dev/japan-used-market-mcp",
+      "version": "0.3.0",
       "transport": {
         "type": "stdio"
       },
       "environmentVariables": [
         {
           "name": "APIFY_TOKEN",
-          "description": "Your Apify API token (console.apify.com \u2192 Settings \u2192 API & Integrations). Runs are billed to your Apify account.",
+          "description": "Your Apify API token (console.apify.com → Settings → API & Integrations). Runs are billed to your Apify account.",
           "isRequired": true,
           "isSecret": true,
           "format": "string"

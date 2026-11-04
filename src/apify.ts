@@ -1,5 +1,6 @@
-/** Minimal Apify API client for the japan-used-camera-market Actor (no SDK dependency). */
+/** Minimal Apify API client for the japan-used-*-market Actors (no SDK dependency). */
 
+/** Camera Actor; kept for 0.2.x importers. Pass the market's actorId to the methods instead. */
 export const ACTOR_ID = 'keiya_dev~japan-used-camera-market';
 const API = process.env.APIFY_API_BASE_URL || 'https://api.apify.com/v2';
 
@@ -39,20 +40,20 @@ export class ApifyClient {
      * Run the Actor and return its dataset items (synchronous run, max 300 s on Apify's side).
      * A failed run comes back as HTTP 400 with the Actor's status message, which explains what to do.
      */
-    async runSync(input: Record<string, unknown>, { timeoutSecs = 290 }: { timeoutSecs?: number } = {}): Promise<any[]> {
-        return this.request<any[]>('POST', `acts/${ACTOR_ID}/run-sync-get-dataset-items?timeout=${timeoutSecs}&clean=1&format=json`, input);
+    async runSync(input: Record<string, unknown>, { timeoutSecs = 290, actorId = ACTOR_ID }: { timeoutSecs?: number; actorId?: string } = {}): Promise<any[]> {
+        return this.request<any[]>('POST', `acts/${actorId}/run-sync-get-dataset-items?timeout=${timeoutSecs}&clean=1&format=json`, input);
     }
 
-    async createTask(name: string, input: Record<string, unknown>) {
+    async createTask(name: string, input: Record<string, unknown>, actorId = ACTOR_ID) {
         return this.request<{ id: string; name: string }>('POST', 'actor-tasks', {
-            actId: ACTOR_ID, name, input, options: { memoryMbytes: 1024, timeoutSecs: 900 },
+            actId: actorId, name, input, options: { memoryMbytes: 1024, timeoutSecs: 900 },
         });
     }
 
     async createSchedule(name: string, cron: string, timezone: string, taskId: string) {
         return this.request<{ id: string; nextRunAt?: string }>('POST', 'schedules', {
             name, cronExpression: cron, timezone, isEnabled: true, isExclusive: true,
-            description: 'Created by japan-used-camera-mcp (start_monitor).',
+            description: 'Created by japan-used-market-mcp (start_monitor).',
             actions: [{ type: 'RUN_ACTOR_TASK', actorTaskId: taskId }],
         });
     }

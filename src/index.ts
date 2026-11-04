@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * japan-used-camera-mcp
+ * japan-used-market-mcp (formerly japan-used-camera-mcp)
  *
- *   stdio (Claude Desktop, Cursor, …):   APIFY_TOKEN=... npx -y @keiya-dev/japan-used-camera-mcp
- *   Streamable HTTP:                      APIFY_TOKEN=... npx -y @keiya-dev/japan-used-camera-mcp --http [--port 3000]
+ *   stdio (Claude Desktop, Cursor, …):   APIFY_TOKEN=... npx -y @keiya-dev/japan-used-market-mcp
+ *   Streamable HTTP:                      APIFY_TOKEN=... npx -y @keiya-dev/japan-used-market-mcp --http [--port 3000]
  *
  * In HTTP mode each request may carry its own token as `Authorization: Bearer <APIFY_TOKEN>`;
  * otherwise the server's APIFY_TOKEN is used. Stateless: one server instance per request.
@@ -21,9 +21,11 @@ const value = (name: string) => { const i = args.indexOf(`--${name}`); return i 
 if (flag('help') || flag('h')) {
     console.log(`${SERVER_NAME} MCP server ${SERVER_VERSION}
 
+Markets: camera (default), watch — pass "market" to each tool; list_markets shows shops and grades.
+
 Usage:
-  japan-used-camera-mcp              stdio transport (default)
-  japan-used-camera-mcp --http       Streamable HTTP on /mcp (port: --port, $PORT or 3000)
+  japan-used-market-mcp              stdio transport (default)
+  japan-used-market-mcp --http       Streamable HTTP on /mcp (port: --port, $PORT or 3000)
 
 Environment:
   APIFY_TOKEN   your Apify API token (required for stdio; optional default for HTTP)`);

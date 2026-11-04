@@ -1,0 +1,33 @@
+{
+  "name": "@keiya-dev/japan-used-camera-mcp",
+  "version": "0.3.0",
+  "description": "Renamed to @keiya-dev/japan-used-market-mcp (cameras + watches). This package now just starts it; existing configs keep working.",
+  "mcpName": "io.github.Enu27/japan-used-camera-market",
+  "type": "module",
+  "bin": {
+    "japan-used-camera-mcp": "index.js"
+  },
+  "main": "server.js",
+  "files": [
+    "index.js",
+    "server.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@keiya-dev/japan-used-market-mcp": "^0.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Enu27/japan-used-market-mcp.git",
+    "directory": "legacy"
+  },
+  "homepage": "https://github.com/Enu27/japan-used-market-mcp#readme",
+  "author": "keiya_dev",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,2 +1,5 @@
 dist/
 node_modules/
+
+# npm recovery codes (Keiya stores them elsewhere, then deletes the file)
+npm_recovery_codes*.txt
