@@ -1,13 +1,22 @@
 {
   "name": "@keiya-dev/japan-used-camera-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for Japan's used camera shops (Fujiya, Sanpou, Naniwa): search, price stats, price history, change monitors.",
+  "version": "0.2.0",
+  "description": "MCP server for Japan's used camera shops (Fujiya, Sanpou, Naniwa, Hard Off): search, price stats, price history, change monitors.",
   "mcpName": "io.github.Enu27/japan-used-camera-market",
   "type": "module",
-  "bin": { "japan-used-camera-mcp": "dist/index.js" },
+  "bin": {
+    "japan-used-camera-mcp": "dist/index.js"
+  },
   "main": "dist/server.js",
-  "files": ["dist", "README.md", "server.json"],
-  "engines": { "node": ">=20" },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && chmod +x dist/index.js",
     "start": "node dist/index.js",
@@ -23,10 +32,27 @@
     "@types/node": "^20.19.0",
     "typescript": "^5.9.3"
   },
-  "keywords": ["mcp", "model-context-protocol", "apify", "camera", "japan", "used-camera", "leica", "price-history"],
-  "repository": { "type": "git", "url": "git+https://github.com/Enu27/japan-used-camera-market.git", "directory": "packages/mcp" },
-  "homepage": "https://apify.com/keiya_dev/japan-used-camera-market",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "apify",
+    "camera",
+    "japan",
+    "used-camera",
+    "leica",
+    "price-history"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Enu27/japan-used-camera-mcp.git"
+  },
+  "homepage": "https://github.com/Enu27/japan-used-camera-mcp#readme",
   "author": "keiya_dev",
   "license": "MIT",
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/Enu27/japan-used-camera-mcp/issues"
+  }
 }
