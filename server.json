@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Enu27/japan-used-camera-market",
+  "title": "Japan Used Camera Market",
+  "description": "Search, price stats, price history and change alerts for Japan's used camera shops via Apify.",
+  "repository": {
+    "url": "https://github.com/Enu27/japan-used-camera-market",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "websiteUrl": "https://apify.com/keiya_dev/japan-used-camera-market",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@keiya-dev/japan-used-camera-mcp",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "APIFY_TOKEN",
+          "description": "Your Apify API token (console.apify.com → Settings → API & Integrations). Runs are billed to your Apify account.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
