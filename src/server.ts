@@ -3,16 +3,16 @@ import { z } from 'zod';
 import { ApifyClient, ApifyError } from './apify.js';
 
 export const SERVER_NAME = 'japan-used-camera-market';
-export const SERVER_VERSION = '0.1.0';
+export const SERVER_VERSION = '0.2.0';
 
-const SHOPS = ['fujiya', 'sanpou', 'naniwa'] as const;
+const SHOPS = ['fujiya', 'sanpou', 'naniwa', 'hardoff'] as const;
 const GRADES = ['NEW', 'A', 'AB+', 'AB', 'AB-', 'B', 'ASIS', 'PARTS'] as const;
 const EVENTS = ['NEW', 'PRICE_DROP', 'PRICE_UP', 'SOLD_OUT'] as const;
 
 const filterShape = {
     keywords: z.array(z.string()).optional().describe('Match any of these in brand + title (case-insensitive, English or Japanese), e.g. ["Leica M6", "X100VI"].'),
     brands: z.array(z.string()).optional().describe('Exact brand names, e.g. ["Leica", "Nikon", "FUJIFILM"].'),
-    sources: z.array(z.enum(SHOPS)).optional().describe('Shops: fujiya (full used stock), sanpou (full used stock), naniwa (new arrivals only). Default: all three.'),
+    sources: z.array(z.enum(SHOPS)).optional().describe('Shops: fujiya (full used stock), sanpou (full used stock), naniwa (new arrivals only), hardoff (Hard Off Off Mall cameras + lenses on sale, ~16,000). Default: all four.'),
     grades: z.array(z.enum(GRADES)).optional().describe('Normalized condition grades, best to worst: NEW > A > AB+ > AB > AB- > B > ASIS > PARTS.'),
     minPriceJpy: z.number().int().min(0).optional(),
     maxPriceJpy: z.number().int().min(0).optional(),
@@ -40,7 +40,7 @@ export function createServer(getClient: () => ApifyClient): McpServer {
 
     server.registerTool('search_listings', {
         title: 'Search used camera listings in Japan',
-        description: 'Search current used camera / lens listings at Japanese shops (Fujiya Camera, Sanpou Camera, Naniwa new arrivals). '
+        description: 'Search current used camera / lens listings at Japanese shops (Fujiya Camera, Sanpou Camera, Naniwa new arrivals, Hard Off Off Mall). '
             + 'Returns title, brand, normalized condition grade, price in JPY and USD, stock status and URL. Takes ~15–60 s.',
         inputSchema: {
             ...filterShape,
@@ -72,7 +72,7 @@ export function createServer(getClient: () => ApifyClient): McpServer {
     server.registerTool('price_history', {
         title: 'Daily price history per model',
         description: 'Daily min / median / max / count per model, by shop and condition grade, from stored daily snapshots of the shops '
-            + '(collected since 2026-11-05, so the first month is short). No crawling — returns in seconds. Needs keywords, brands or models.',
+            + '(Fujiya, Sanpou and Naniwa; collected since 2026-11-05, so the first month is short). No crawling — returns in seconds. Needs keywords, brands or models.',
         inputSchema: {
             ...filterShape,
             models: z.array(z.string()).optional().describe('Exact model keys as returned by price_stats ("model" field), e.g. ["leica m6", "nikon zf"].'),
