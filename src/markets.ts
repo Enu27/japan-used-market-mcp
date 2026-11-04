@@ -1,7 +1,7 @@
 /** Markets this server covers: one Apify Actor each, with its own shops and condition grades. */
 
 export interface Market {
-    id: 'camera' | 'watch';
+    id: 'camera' | 'watch' | 'instrument';
     actorId: string;
     actorUrl: string;
     title: string;
@@ -51,6 +51,26 @@ export const MARKETS = {
         history: 'Daily since 2026-11-05 for watchnian; offmall weekly (Sundays).',
         exampleKeywords: ['Grand Seiko', 'SBGA211', 'Speedmaster', 'Rolex 16233'],
         slimExtra: (it) => ({ ref: it.ref ?? undefined, gender: it.gender ?? undefined, accessories: it.accessories?.summary ?? undefined }),
+    },
+    instrument: {
+        id: 'instrument',
+        actorId: 'keiya_dev~japan-used-instrument-market',
+        actorUrl: 'https://apify.com/keiya_dev/japan-used-instrument-market',
+        title: 'Used guitars, basses and wind instruments',
+        monitorPrefix: 'juim-monitor-',
+        shops: {
+            shimokura: 'Shimokura Gakki (Ochanomizu / Omiya / Hachioji): full used stock, ~1,400 guitars, basses, wind instruments, effects; not graded',
+            offmall: 'Hard Off Off Mall: guitars, basses, woodwinds and brass on sale, ~13,000',
+        },
+        grades: ['BRAND_NEW', 'MINT', 'EXCELLENT', 'VERY_GOOD', 'GOOD', 'FAIR', 'POOR', 'NON_FUNCTIONING'],
+        gradeNote: 'Reverb scale: BRAND_NEW > MINT > EXCELLENT > VERY_GOOD > GOOD > FAIR > POOR > NON_FUNCTIONING (as is / parts); shimokura listings are ungraded',
+        history: 'Daily since 2026-11-05 for shimokura; offmall weekly (Sundays).',
+        exampleKeywords: ['Fender Japan', 'ST57', 'JB62', 'Tokai', 'Yanagisawa'],
+        slimExtra: (it) => ({
+            ref: it.ref ?? undefined, type: it.instrumentType ?? undefined, madeIn: it.madeIn ?? undefined,
+            year: it.year ?? undefined, era: it.era ?? undefined, case: it.accessories?.summary ?? undefined,
+            reverbCondition: it.reverbCondition ?? undefined, store: it.shop ?? undefined,
+        }),
     },
 } satisfies Record<string, Market>;
 

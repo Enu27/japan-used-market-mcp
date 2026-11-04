@@ -29,6 +29,9 @@ function fakeApify() {
                 if (call.body.mode === 'search') return json(201, [{ source: 'watchnian', title: 'グランドセイコー SBGA211', brand: 'Grand Seiko', model: 'grand seiko sbga211', ref: 'SBGA211', gender: 'men', conditionGrade: 'SA', conditionGradeRaw: 'SA', accessories: { box: true, warrantyCard: true, summary: 'box + warranty card', raw: '箱・保証書' }, priceJpy: 650000, priceUsd: 4250, inStock: true, url: 'https://example/w1', scrapedAt: 'x', fxJpyPerUsd: 153 }]);
                 return json(201, [{ model: 'grand seiko sbga211', count: 1, medianJpy: 650000 }]);
             }
+            if (req.url.startsWith('/v2/acts/keiya_dev~japan-used-instrument-market/run-sync-get-dataset-items')) {
+                return json(201, [{ source: 'offmall', title: 'JB62-58 (エレキベース)', brand: 'Fender Japan', brandRaw: 'FENDER JAPAN', model: 'fender japan jb62-58', ref: 'JB62-58', instrumentType: 'bass', madeIn: 'Japan', madeInSource: 'brand', year: 2002, yearFrom: 2002, yearTo: 2002, era: '2000s', conditionGrade: 'VERY_GOOD', conditionGradeRaw: 'B', reverbCondition: 'Very Good', accessories: { caseType: 'soft', originalCase: false, summary: 'soft case', raw: 'ソフトケース' }, shop: 'ハードオフ東大阪若江店', priceJpy: 88000, priceUsd: 555.94, inStock: true, url: 'https://example/i1', scrapedAt: 'x', fxJpyPerUsd: 158 }]);
+            }
             if (req.url === '/v2/actor-tasks') return json(201, { data: { id: 'TASK1', name: call.body.name } });
             if (req.url === '/v2/schedules') return json(201, { data: { id: 'SCHED1', nextRunAt: '2026-11-05T01:00:00.000Z' } });
             if (req.url === '/v2/actor-tasks/TASK1/runs') return json(201, { data: { id: 'RUN1' } });
@@ -81,8 +84,10 @@ const lastRunSync = (calls) => calls.findLast((c) => c.path.includes('run-sync')
 async function exerciseWatch(client, calls) {
     const lm = await client.callTool({ name: 'list_markets', arguments: {} });
     const markets = parse(lm);
-    assert.deepEqual(markets.map((m) => m.market), ['camera', 'watch']);
+    assert.deepEqual(markets.map((m) => m.market), ['camera', 'watch', 'instrument']);
     assert.deepEqual(Object.keys(markets[1].shops), ['watchnian', 'offmall']);
+    assert.deepEqual(Object.keys(markets[2].shops), ['shimokura', 'offmall']);
+    assert.equal(markets[2].grades[0], 'BRAND_NEW');
 
     const search = await client.callTool({ name: 'search_listings', arguments: { market: 'watch', keywords: ['SBGA211'], sources: ['watchnian'], grades: ['SA', 'A'] } });
     assert.ok(!search.isError, search.content[0].text);
@@ -109,6 +114,21 @@ async function exerciseWatch(client, calls) {
     const badMarket = await client.callTool({ name: 'search_listings', arguments: { market: 'bikes' } });
     assert.equal(badMarket.isError, true);
     assert.equal(calls.length, n, 'no API call for invalid arguments');
+
+    // Instrument market: Actor id, instrument fields kept, market not sent, wrong shop rejected.
+    const ins = await client.callTool({ name: 'search_listings', arguments: { market: 'instrument', keywords: ['Fender Japan'], grades: ['VERY_GOOD'] } });
+    assert.ok(!ins.isError, ins.content[0].text);
+    assert.deepEqual(parse(ins)[0], { shop: 'offmall', title: 'JB62-58 (エレキベース)', brand: 'Fender Japan', model: 'fender japan jb62-58', grade: 'VERY_GOOD', gradeRaw: 'B', priceJpy: 88000, priceUsd: 555.94, inStock: true, ref: 'JB62-58', type: 'bass', madeIn: 'Japan', year: 2002, era: '2000s', case: 'soft case', reverbCondition: 'Very Good', store: 'ハードオフ東大阪若江店', url: 'https://example/i1' });
+    const sentI = lastRunSync(calls);
+    assert.match(sentI.path, /^\/v2\/acts\/keiya_dev~japan-used-instrument-market\//);
+    assert.deepEqual(sentI.body, { mode: 'search', keywords: ['Fender Japan'], grades: ['VERY_GOOD'], maxItems: 20 });
+    const m = calls.length;
+    const wrongInsShop = await client.callTool({ name: 'search_listings', arguments: { market: 'instrument', sources: ['watchnian'] } });
+    assert.equal(wrongInsShop.isError, true);
+    assert.match(wrongInsShop.content[0].text, /watchnian is not a shop of the instrument market\. Its shops are: shimokura, offmall\. Did you mean market: "watch"\?/);
+    const wrongInsGrade = await client.callTool({ name: 'search_listings', arguments: { market: 'instrument', grades: ['AB'] } });
+    assert.match(wrongInsGrade.content[0].text, /AB is not a grade of the instrument market/);
+    assert.equal(calls.length, m, 'no API call for invalid instrument arguments');
 
     const mon = await client.callTool({ name: 'start_monitor', arguments: { market: 'watch', name: 'gs-sbga211', keywords: ['SBGA211'] } });
     assert.ok(!mon.isError, mon.content[0].text);

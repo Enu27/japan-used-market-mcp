@@ -4,7 +4,7 @@ import { ApifyClient, ApifyError } from './apify.js';
 import { ALL_GRADES, ALL_SHOPS, DEFAULT_MARKET, MARKETS, MARKET_IDS, checkMarketArgs, type Market, type MarketId } from './markets.js';
 
 export const SERVER_NAME = 'japan-used-market';
-export const SERVER_VERSION = '0.3.0';
+export const SERVER_VERSION = '0.4.0';
 
 const EVENTS = ['NEW', 'PRICE_DROP', 'PRICE_UP', 'SOLD_OUT'] as const;
 
@@ -13,8 +13,8 @@ const gradeList = MARKET_IDS.map((id) => `${id}: ${MARKETS[id].gradeNote}`).join
 
 const filterShape = {
     market: z.enum(MARKET_IDS).default(DEFAULT_MARKET).describe(`Which market: ${MARKET_IDS.map((id) => `"${id}" (${MARKETS[id].title.toLowerCase()})`).join(' or ')}. Default "${DEFAULT_MARKET}". Shops and grades depend on it — see list_markets.`),
-    keywords: z.array(z.string()).optional().describe('Match any of these in brand + title (case-insensitive, English or Japanese; watches also match reference numbers), e.g. ["Leica M6"] or ["Grand Seiko", "SBGA211"].'),
-    brands: z.array(z.string()).optional().describe('Exact brand names, e.g. ["Leica", "Nikon"] or ["Rolex", "Grand Seiko"].'),
+    keywords: z.array(z.string()).optional().describe('Match any of these in brand + title (case-insensitive, English or Japanese; watches and instruments also match reference / model codes), e.g. ["Leica M6"], ["Grand Seiko", "SBGA211"] or ["Fender Japan", "ST57"].'),
+    brands: z.array(z.string()).optional().describe('Exact brand names, e.g. ["Leica", "Nikon"], ["Rolex", "Grand Seiko"] or ["Fender Japan", "Gibson"] (instruments: Fender is split into Fender Japan / Fender USA / Fender Mexico / Fender).'),
     sources: z.array(z.enum(ALL_SHOPS)).optional().describe(`Shops of the chosen market (default: all of them). ${shopList}.`),
     grades: z.array(z.enum(ALL_GRADES)).optional().describe(`Normalized condition grades of the chosen market, best to worst. ${gradeList}.`),
     minPriceJpy: z.number().int().min(0).optional(),
@@ -55,7 +55,7 @@ export function createServer(getClient: () => ApifyClient): McpServer {
 
     server.registerTool('list_markets', {
         title: 'List markets, shops and grades',
-        description: 'Lists the markets this server covers (used cameras, used watches) with each market\'s shop ids, condition grades (best to worst), '
+        description: 'Lists the markets this server covers (used cameras, used watches, used musical instruments) with each market\'s shop ids, condition grades (best to worst), '
             + 'price-history coverage and example keywords. Free and instant — call it first when unsure which sources / grades are valid.',
         inputSchema: {},
     }, async () => asText(`${MARKET_IDS.length} markets. Pass the id as "market" to the other tools (default "${DEFAULT_MARKET}").`,
@@ -67,8 +67,10 @@ export function createServer(getClient: () => ApifyClient): McpServer {
     server.registerTool('search_listings', {
         title: 'Search used listings in Japan',
         description: 'Search current used listings at Japanese shops — cameras / lenses (Fujiya Camera, Sanpou Camera, Naniwa new arrivals, Hard Off Off Mall) '
-            + 'or wristwatches (WATCHNIAN, Hard Off Off Mall). Returns title, brand, normalized condition grade, price in JPY and USD, stock status and URL; '
-            + 'watches add reference number, gender and box / warranty card (WATCHNIAN). Takes ~15–60 s.',
+            + 'or wristwatches (WATCHNIAN, Hard Off Off Mall) or guitars / basses / wind instruments (Shimokura Gakki, Hard Off Off Mall). '
+            + 'Returns title, brand, normalized condition grade, price in JPY and USD, stock status and URL; '
+            + 'watches add reference number, gender and box / warranty card (WATCHNIAN); instruments add model code, instrument type, '
+            + 'country of manufacture (madeIn), production year / era, case, Reverb condition name and store. Takes ~15–60 s.',
         inputSchema: {
             ...filterShape,
             includeSoldOut: z.boolean().optional().describe('Also return listings marked sold out.'),
@@ -86,7 +88,7 @@ export function createServer(getClient: () => ApifyClient): McpServer {
     server.registerTool('price_stats', {
         title: 'Current price stats per model',
         description: 'Per-model price summary of in-stock listings right now: count and min / median / max (JPY and USD), '
-            + 'broken down by shop and by normalized condition grade, plus the cheapest listing. Watches are grouped by brand + reference number. '
+            + 'broken down by shop and by normalized condition grade, plus the cheapest listing. Watches are grouped by brand + reference number, instruments by brand + model code. '
             + 'Use keywords to stay fast (~1–4 min).',
         inputSchema: {
             ...filterShape,
@@ -108,7 +110,7 @@ export function createServer(getClient: () => ApifyClient): McpServer {
             + 'No crawling — returns in seconds. Needs keywords, brands or models.',
         inputSchema: {
             ...filterShape,
-            models: z.array(z.string()).optional().describe('Exact model keys as returned by price_stats ("model" field), e.g. ["leica m6", "nikon zf"] or ["grand seiko sbga211"].'),
+            models: z.array(z.string()).optional().describe('Exact model keys as returned by price_stats ("model" field), e.g. ["leica m6", "nikon zf"], ["grand seiko sbga211"] or ["fender japan jb62-58"].'),
             days: z.number().int().min(1).max(3650).default(90).describe('Days back from today (Japan time).'),
         },
     }, async (args) => {

@@ -1,9 +1,9 @@
-# Japan Used Market — MCP server (cameras, watches)
+# Japan Used Market — MCP server (cameras, watches, guitars)
 
 [![CI](https://github.com/Enu27/japan-used-market-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Enu27/japan-used-market-mcp/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@keiya-dev/japan-used-market-mcp)](https://www.npmjs.com/package/@keiya-dev/japan-used-market-mcp)
 
-An MCP server that lets Claude and other MCP clients search, price and watch **Japan's used camera and watch shops**. Every tool takes a `market`: `"camera"` (default) or `"watch"`.
+An MCP server that lets Claude and other MCP clients search, price and watch **Japan's used camera, watch and musical-instrument shops**. Every tool takes a `market`: `"camera"` (default), `"watch"` or `"instrument"`.
 
 | Market | Shop (`sources` id) | Coverage | Grades, best → worst |
 |---|---|---|---|
@@ -13,10 +13,12 @@ An MCP server that lets Claude and other MCP clients search, price and watch **J
 | | **Hard Off Off Mall** (`hardoff`) | cameras and lenses on sale, ~16,000 | |
 | `watch` | **WATCHNIAN** (`watchnian`) | full used stock, ~3,900; box / warranty card | `NEW > UNUSED > SA > A > AB > B > C > JUNK`, plus `ANTIQUE` |
 | | **Hard Off Off Mall** (`offmall`) | wristwatches on sale, ~24,000 | |
+| `instrument` | **Shimokura Gakki** (`shimokura`) | full used stock, ~1,400 guitars, basses, wind instruments, effects; not graded | Reverb scale: `BRAND_NEW > MINT > EXCELLENT > VERY_GOOD > GOOD > FAIR > POOR > NON_FUNCTIONING` |
+| | **Hard Off Off Mall** (`offmall`) | guitars, basses, woodwinds, brass on sale, ~13,000 | |
 
-Grades are normalized across shops, and every shop's own label is kept as well. Prices come in JPY and USD. Watches also carry the **reference number** (e.g. `SBGA211`, `16233`).
+Grades are normalized across shops, and every shop's own label is kept as well. Prices come in JPY and USD. Watches also carry the **reference number** (e.g. `SBGA211`, `16233`). Instruments carry the **model code** (`ST57-70TX`, `JB62-58`), **country of manufacture** (`madeIn`; Fender is split into Fender Japan / USA / Mexico), **production year / era**, **case** and the Reverb condition name.
 
-It runs the [Japan Used Camera Market](https://apify.com/keiya_dev/japan-used-camera-market) and [Japan Used Watch Market](https://apify.com/keiya_dev/japan-used-watch-market) Actors on [Apify](https://apify.com) **with your own Apify token**, so runs are billed to your Apify account. That is pay per result, and the free plan's monthly credit covers light use.
+It runs the [Japan Used Camera Market](https://apify.com/keiya_dev/japan-used-camera-market) and [Japan Used Watch Market](https://apify.com/keiya_dev/japan-used-watch-market) and [Japan Used Guitar & Instrument Market](https://apify.com/keiya_dev/japan-used-instrument-market) Actors on [Apify](https://apify.com) **with your own Apify token**, so runs are billed to your Apify account. That is pay per result, and the free plan's monthly credit covers light use.
 
 > **Renamed from `@keiya-dev/japan-used-camera-mcp`.** The old package still works (it now just starts this one), and calls without `market` behave exactly as in 0.2.0. Switch the package name in your config when convenient.
 
@@ -70,12 +72,12 @@ APIFY_TOKEN=apify_api_... npx -y @keiya-dev/japan-used-market-mcp --http --port 
 | Tool | What it does | Typical time |
 |---|---|---|
 | `list_markets` | The markets, their shop ids, grades, price-history coverage and example keywords. No Apify run. | instant |
-| `search_listings` | Current listings matching `keywords` / `brands` / `grades` / `minPriceJpy` / `maxPriceJpy` from the selected `sources`. Returns shop, title, brand, model key, normalized + raw grade, JPY, USD, stock flag and URL; watches add `ref`, `gender` and `accessories` (e.g. `box + warranty card`, WATCHNIAN only). `maxItems` 1–200 (default 20). | 15–60 s |
+| `search_listings` | Current listings matching `keywords` / `brands` / `grades` / `minPriceJpy` / `maxPriceJpy` from the selected `sources`. Returns shop, title, brand, model key, normalized + raw grade, JPY, USD, stock flag and URL; watches add `ref`, `gender` and `accessories` (e.g. `box + warranty card`, WATCHNIAN only); instruments add `ref`, `type`, `madeIn`, `year`, `era`, `case`, `reverbCondition` and `store`. `maxItems` 1–200 (default 20). | 15–60 s |
 | `price_stats` | Per-model summary of in-stock listings **right now**: count, min / median / max (JPY and USD) by shop and by grade, cheapest listing. `maxItems` = listings read first (default 300; 0 = everything, ~25 min with all shops). | 1–4 min |
-| `price_history` | **Daily** min / median / max / count per model, by shop, grade and shop × grade, for the last `days` (default 90). Reads stored snapshots (since 2026-11-05: daily for Fujiya, Sanpou, Naniwa and WATCHNIAN; weekly on Sundays for Hard Off), so there is no crawling. Needs `keywords`, `brands` or `models` (model keys from `price_stats`). | seconds |
+| `price_history` | **Daily** min / median / max / count per model, by shop, grade and shop × grade, for the last `days` (default 90). Reads stored snapshots (since 2026-11-05: daily for Fujiya, Sanpou, Naniwa, WATCHNIAN and Shimokura; weekly on Sundays for Hard Off), so there is no crawling. Needs `keywords`, `brands` or `models` (model keys from `price_stats`). | seconds |
 | `start_monitor` | Creates, **in your Apify account**, a saved Task in monitor mode plus a Schedule (default hourly, `cron`, `timezone`) and starts the first run (baseline). Later runs emit only `NEW` / `PRICE_DROP` / `PRICE_UP` / `SOLD_OUT`, optionally POSTed to `alertWebhookUrl` (Slack, Discord, n8n…). Your client should confirm with you first; delete the Task/Schedule in Apify Console when done. | ~1 min to set up |
 
-`sources` and `grades` must belong to the chosen `market` (default: all of its shops). A mismatch, e.g. `market: "watch"` with `sources: ["fujiya"]`, returns an error naming the valid values without starting a run. Monitors are named `jucm-monitor-<name>` (camera) or `juwm-monitor-<name>` (watch) in your Apify account.
+`sources` and `grades` must belong to the chosen `market` (default: all of its shops). A mismatch, e.g. `market: "watch"` with `sources: ["fujiya"]`, returns an error naming the valid values without starting a run. Monitors are named `jucm-monitor-<name>` (camera), `juwm-monitor-<name>` (watch) or `juim-monitor-<name>` (instrument) in your Apify account.
 
 ### Example prompts
 
@@ -86,12 +88,15 @@ APIFY_TOKEN=apify_api_... npx -y @keiya-dev/japan-used-market-mcp --http --port 
 - "Find a Grand Seiko SBGA211 in SA or better with box and papers, and give me the USD price."
 - "What's the median price of a Rolex 16233 in Japan, by shop?"
 - "Alert me on Discord when a new King Seiko appears."
+- "Find a Made in Japan Fender Jazz Bass from the 80s or 90s with a hard case, with the USD price."
+- "What do Fender Japan ST57s sell for in Japan, by shop and condition?"
+- "Alert me when a new Tokai or Greco Les Paul appears in Japan."
 
 ## Develop
 
 ```bash
 npm install
-npm test            # tsc build + end-to-end tests (stdio, HTTP, missing token; camera + watch, market validation) against a fake Apify API
+npm test            # tsc build + end-to-end tests (stdio, HTTP, missing token; camera + watch + instrument, market validation) against a fake Apify API
 npm run start       # stdio
 npm run start:http  # HTTP on :3000
 ```
@@ -101,8 +106,8 @@ npm run start:http  # HTTP on :3000
 ## Notes
 
 - Not affiliated with any of the shops. Prices are the shops' tax-included asking prices, not sold prices.
-- Data comes from the shops' public listing pages (plus WATCHNIAN product pages for box / warranty card in `search`). Serial numbers and condition notes are not read.
-- The Actors' READMEs cover coverage, limits and pricing: https://apify.com/keiya_dev/japan-used-camera-market · https://apify.com/keiya_dev/japan-used-watch-market
+- Data comes from the shops' public listing pages (plus product pages in `search`: WATCHNIAN for box / warranty card; Shimokura and Off Mall instruments for case, store, year and country). Serial numbers are not read.
+- The Actors' READMEs cover coverage, limits and pricing: https://apify.com/keiya_dev/japan-used-camera-market · https://apify.com/keiya_dev/japan-used-watch-market · https://apify.com/keiya_dev/japan-used-instrument-market
 - `legacy/` is the old `@keiya-dev/japan-used-camera-mcp` package: a thin wrapper that starts this server.
 
 ## License
