@@ -21,7 +21,7 @@ const value = (name: string) => { const i = args.indexOf(`--${name}`); return i 
 if (flag('help') || flag('h')) {
     console.log(`${SERVER_NAME} MCP server ${SERVER_VERSION}
 
-Markets: camera (default), watch, instrument — pass "market" to each tool; list_markets shows shops and grades.
+Markets: camera (default), watch, instrument, model-train — pass "market" to each tool; list_markets shows shops and grades.
 
 Usage:
   japan-used-market-mcp              stdio transport (default)

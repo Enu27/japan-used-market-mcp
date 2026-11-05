@@ -1,7 +1,7 @@
 {
   "name": "@keiya-dev/japan-used-market-mcp",
-  "version": "0.4.0",
-  "description": "MCP server for Japan's used camera, watch and guitar shops (Fujiya, WATCHNIAN, Shimokura, Hard Off…): search, price stats, price history, change monitors.",
+  "version": "0.5.1",
+  "description": "MCP server for Japan's used camera, watch, guitar and model-train shops (Fujiya, WATCHNIAN, Shimokura, Hobbyland Pochi, Hard Off…): search, price stats, price history, change monitors.",
   "mcpName": "io.github.Enu27/japan-used-market",
   "type": "module",
   "bin": {
@@ -50,7 +50,11 @@
     "price-history",
     "used-guitar",
     "fender-japan",
-    "musical-instruments"
+    "musical-instruments",
+    "model-train",
+    "n-gauge",
+    "kato",
+    "tomix"
   ],
   "repository": {
     "type": "git",

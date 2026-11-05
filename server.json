@@ -1,19 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Enu27/japan-used-market",
-  "title": "Japan Used Market (cameras, watches, guitars)",
-  "description": "Search, price stats, history and alerts for Japan's used camera, watch and guitar shops via Apify.",
+  "title": "Japan Used Market (cameras, watches, guitars, trains)",
+  "description": "Search, price stats, history and alerts for Japan's used camera, watch, guitar and model-train shops",
   "repository": {
     "url": "https://github.com/Enu27/japan-used-market-mcp",
     "source": "github"
   },
   "websiteUrl": "https://github.com/Enu27/japan-used-market-mcp",
-  "version": "0.4.0",
+  "version": "0.5.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@keiya-dev/japan-used-market-mcp",
-      "version": "0.4.0",
+      "version": "0.5.1",
       "transport": {
         "type": "stdio"
       },

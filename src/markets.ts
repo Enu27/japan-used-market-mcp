@@ -1,7 +1,7 @@
 /** Markets this server covers: one Apify Actor each, with its own shops and condition grades. */
 
 export interface Market {
-    id: 'camera' | 'watch' | 'instrument';
+    id: 'camera' | 'watch' | 'instrument' | 'model-train';
     actorId: string;
     actorUrl: string;
     title: string;
@@ -44,11 +44,13 @@ export const MARKETS = {
         monitorPrefix: 'juwm-monitor-',
         shops: {
             watchnian: 'WATCHNIAN (formerly Ippuukishi): full used stock, ~3,900; search adds box / warranty card',
+            rasin: 'GINZA RASIN (Ginza): used luxury watches of 21 brands, ~4,000 in stock; not graded; search adds box / warranty card',
+            jackroad: 'Jackroad (Nakano): new arrivals only, ~800 (mostly used); 新品 / 未使用 marked NEW / UNUSED, used pieces not graded',
             offmall: 'Hard Off Off Mall: wristwatches on sale, ~24,000',
         },
         grades: ['NEW', 'UNUSED', 'SA', 'A', 'AB', 'B', 'C', 'JUNK', 'ANTIQUE'],
         gradeNote: 'NEW > UNUSED > SA (like new) > A > AB > B > C > JUNK (not working); ANTIQUE = ungraded antique',
-        history: 'Daily since 2026-11-05 for watchnian; offmall weekly (Sundays).',
+        history: 'Daily since 2026-11-05 for watchnian, rasin, jackroad; offmall weekly (Sundays).',
         exampleKeywords: ['Grand Seiko', 'SBGA211', 'Speedmaster', 'Rolex 16233'],
         slimExtra: (it) => ({ ref: it.ref ?? undefined, gender: it.gender ?? undefined, accessories: it.accessories?.summary ?? undefined }),
     },
@@ -60,16 +62,41 @@ export const MARKETS = {
         monitorPrefix: 'juim-monitor-',
         shops: {
             shimokura: 'Shimokura Gakki (Ochanomizu / Omiya / Hachioji): full used stock, ~1,400 guitars, basses, wind instruments, effects; not graded',
+            jguitar: 'J-Guitar: marketplace listing shops across Japan, ~11,000 used instruments on sale; one 9-step condition scale; the listing shop in store',
+            ishibashi: 'Ishibashi Music (12 stores): full used stock, ~8,500; 7-step rank',
+            shimamura: 'Shimamura Music (stores nationwide): full used stock, ~5,500; not graded',
+            ikebe: 'Ikebe Music: used and vintage stock, ~1,400; not graded',
             offmall: 'Hard Off Off Mall: guitars, basses, woodwinds and brass on sale, ~13,000',
         },
         grades: ['BRAND_NEW', 'MINT', 'EXCELLENT', 'VERY_GOOD', 'GOOD', 'FAIR', 'POOR', 'NON_FUNCTIONING'],
         gradeNote: 'Reverb scale: BRAND_NEW > MINT > EXCELLENT > VERY_GOOD > GOOD > FAIR > POOR > NON_FUNCTIONING (as is / parts); shimokura listings are ungraded',
-        history: 'Daily since 2026-11-05 for shimokura; offmall weekly (Sundays).',
+        history: 'Daily since 2026-11-05 for shimokura, ishibashi, shimamura, ikebe; jguitar and offmall weekly (Sundays).',
         exampleKeywords: ['Fender Japan', 'ST57', 'JB62', 'Tokai', 'Yanagisawa'],
         slimExtra: (it) => ({
             ref: it.ref ?? undefined, type: it.instrumentType ?? undefined, madeIn: it.madeIn ?? undefined,
             year: it.year ?? undefined, era: it.era ?? undefined, case: it.accessories?.summary ?? undefined,
             reverbCondition: it.reverbCondition ?? undefined, store: it.shop ?? undefined,
+        }),
+    },
+    'model-train': {
+        id: 'model-train',
+        actorId: 'keiya_dev~japan-used-model-train-market',
+        actorUrl: 'https://apify.com/keiya_dev/japan-used-model-train-market',
+        title: 'Used model trains (N, HO)',
+        monitorPrefix: 'jutm-monitor-',
+        shops: {
+            pochi: 'Hobbyland Pochi (Osaka-based used model-train chain): full used stock, ~12,000 N / HO trains; search adds the maker code (メーカー品番) and JAN',
+            offmall: 'Hard Off Off Mall: model trains on sale, ~9,600; search adds motor (モーター) and case / box',
+        },
+        grades: ['NEW', 'MINT', 'EXCELLENT', 'VERY_GOOD', 'GOOD', 'FAIR', 'JUNK', 'CUSTOM'],
+        gradeNote: 'NEW > MINT > EXCELLENT > VERY_GOOD > GOOD > FAIR > JUNK (as is), plus CUSTOM (modified / painted / kit-built); Pochi A = MINT, A´ = EXCELLENT',
+        history: 'Daily since 2026-11-05 for pochi; offmall weekly (Sundays).',
+        exampleKeywords: ['KATO', 'TOMIX', '10-1332', '98313', '新幹線', 'EF58'],
+        slimExtra: (it) => ({
+            productCode: it.productCode ?? undefined, scale: it.scale ?? undefined, setType: it.setType ?? undefined,
+            motorized: it.motorized ?? undefined, lotYear: it.lotYear ?? undefined,
+            accessories: it.accessories ? Object.fromEntries(['case', 'manual', 'sleeve'].filter((k) => it.accessories[k] != null).map((k) => [k, it.accessories[k]])) : undefined,
+            store: it.shop ?? undefined,
         }),
     },
 } satisfies Record<string, Market>;

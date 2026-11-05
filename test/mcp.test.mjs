@@ -32,6 +32,9 @@ function fakeApify() {
             if (req.url.startsWith('/v2/acts/keiya_dev~japan-used-instrument-market/run-sync-get-dataset-items')) {
                 return json(201, [{ source: 'offmall', title: 'JB62-58 (エレキベース)', brand: 'Fender Japan', brandRaw: 'FENDER JAPAN', model: 'fender japan jb62-58', ref: 'JB62-58', instrumentType: 'bass', madeIn: 'Japan', madeInSource: 'brand', year: 2002, yearFrom: 2002, yearTo: 2002, era: '2000s', conditionGrade: 'VERY_GOOD', conditionGradeRaw: 'B', reverbCondition: 'Very Good', accessories: { caseType: 'soft', originalCase: false, summary: 'soft case', raw: 'ソフトケース' }, shop: 'ハードオフ東大阪若江店', priceJpy: 88000, priceUsd: 555.94, inStock: true, url: 'https://example/i1', scrapedAt: 'x', fxJpyPerUsd: 158 }]);
             }
+            if (req.url.startsWith('/v2/acts/keiya_dev~japan-used-model-train-market/run-sync-get-dataset-items')) {
+                return json(201, [{ source: 'offmall', title: '10-1332 (285系0番台〈サンライズエクスプレス〉7両セット)', brand: 'KATO', brandJa: 'カトー', model: 'kato 10-1332', productCode: '10-1332', productCodeSource: 'title', ref: '10-1332', scale: 'N', scaleRatio: null, setType: 'set', motorized: true, accessories: { case: true, manual: null, sleeve: null, note: '付属品 付属品あり ケースキズやスレあり' }, lotYear: null, shop: 'ホビーオフ多摩和田店', conditionGrade: 'VERY_GOOD', conditionGradeRaw: 'B', priceJpy: 19800, priceUsd: 125.12, inStock: true, url: 'https://example/t1', scrapedAt: 'x', fxJpyPerUsd: 158 }]);
+            }
             if (req.url === '/v2/actor-tasks') return json(201, { data: { id: 'TASK1', name: call.body.name } });
             if (req.url === '/v2/schedules') return json(201, { data: { id: 'SCHED1', nextRunAt: '2026-11-05T01:00:00.000Z' } });
             if (req.url === '/v2/actor-tasks/TASK1/runs') return json(201, { data: { id: 'RUN1' } });
@@ -84,9 +87,11 @@ const lastRunSync = (calls) => calls.findLast((c) => c.path.includes('run-sync')
 async function exerciseWatch(client, calls) {
     const lm = await client.callTool({ name: 'list_markets', arguments: {} });
     const markets = parse(lm);
-    assert.deepEqual(markets.map((m) => m.market), ['camera', 'watch', 'instrument']);
-    assert.deepEqual(Object.keys(markets[1].shops), ['watchnian', 'offmall']);
-    assert.deepEqual(Object.keys(markets[2].shops), ['shimokura', 'offmall']);
+    assert.deepEqual(markets.map((m) => m.market), ['camera', 'watch', 'instrument', 'model-train']);
+    assert.deepEqual(Object.keys(markets[3].shops), ['pochi', 'offmall']);
+    assert.equal(markets[3].grades.at(-1), 'CUSTOM');
+    assert.deepEqual(Object.keys(markets[1].shops), ['watchnian', 'rasin', 'jackroad', 'offmall']);
+    assert.deepEqual(Object.keys(markets[2].shops), ['shimokura', 'jguitar', 'ishibashi', 'shimamura', 'ikebe', 'offmall']);
     assert.equal(markets[2].grades[0], 'BRAND_NEW');
 
     const search = await client.callTool({ name: 'search_listings', arguments: { market: 'watch', keywords: ['SBGA211'], sources: ['watchnian'], grades: ['SA', 'A'] } });
@@ -103,7 +108,7 @@ async function exerciseWatch(client, calls) {
     const n = calls.length;
     const wrongShop = await client.callTool({ name: 'search_listings', arguments: { market: 'watch', sources: ['fujiya'] } });
     assert.equal(wrongShop.isError, true);
-    assert.match(wrongShop.content[0].text, /fujiya is not a shop of the watch market\. Its shops are: watchnian, offmall\. Did you mean market: "camera"\?/);
+    assert.match(wrongShop.content[0].text, /fujiya is not a shop of the watch market\. Its shops are: watchnian, rasin, jackroad, offmall\. Did you mean market: "camera"\?/);
     const wrongShop2 = await client.callTool({ name: 'price_stats', arguments: { sources: ['watchnian'] } });
     assert.match(wrongShop2.content[0].text, /not a shop of the camera market.*Did you mean market: "watch"/);
     const wrongGrade = await client.callTool({ name: 'price_history', arguments: { market: 'camera', grades: ['SA'], keywords: ['Leica'] } });
@@ -125,10 +130,23 @@ async function exerciseWatch(client, calls) {
     const m = calls.length;
     const wrongInsShop = await client.callTool({ name: 'search_listings', arguments: { market: 'instrument', sources: ['watchnian'] } });
     assert.equal(wrongInsShop.isError, true);
-    assert.match(wrongInsShop.content[0].text, /watchnian is not a shop of the instrument market\. Its shops are: shimokura, offmall\. Did you mean market: "watch"\?/);
+    assert.match(wrongInsShop.content[0].text, /watchnian is not a shop of the instrument market\. Its shops are: shimokura, jguitar, ishibashi, shimamura, ikebe, offmall\. Did you mean market: "watch"\?/);
     const wrongInsGrade = await client.callTool({ name: 'search_listings', arguments: { market: 'instrument', grades: ['AB'] } });
     assert.match(wrongInsGrade.content[0].text, /AB is not a grade of the instrument market/);
     assert.equal(calls.length, m, 'no API call for invalid instrument arguments');
+
+    // Model-train market: Actor id, train fields kept (accessories reduced to the stated facts), wrong shop rejected.
+    const tr = await client.callTool({ name: 'search_listings', arguments: { market: 'model-train', keywords: ['KATO'], sources: ['offmall'] } });
+    assert.ok(!tr.isError, tr.content[0].text);
+    assert.deepEqual(parse(tr)[0], { shop: 'offmall', title: '10-1332 (285系0番台〈サンライズエクスプレス〉7両セット)', brand: 'KATO', model: 'kato 10-1332', grade: 'VERY_GOOD', gradeRaw: 'B', priceJpy: 19800, priceUsd: 125.12, inStock: true, productCode: '10-1332', scale: 'N', setType: 'set', motorized: true, accessories: { case: true }, store: 'ホビーオフ多摩和田店', url: 'https://example/t1' });
+    const sentT = lastRunSync(calls);
+    assert.match(sentT.path, /^\/v2\/acts\/keiya_dev~japan-used-model-train-market\//);
+    assert.deepEqual(sentT.body, { mode: 'search', keywords: ['KATO'], sources: ['offmall'], maxItems: 20 });
+    const t = calls.length;
+    const wrongTrShop = await client.callTool({ name: 'search_listings', arguments: { market: 'model-train', sources: ['shimokura'] } });
+    assert.equal(wrongTrShop.isError, true);
+    assert.match(wrongTrShop.content[0].text, /shimokura is not a shop of the model-train market\. Its shops are: pochi, offmall\. Did you mean market: "instrument"\?/);
+    assert.equal(calls.length, t, 'no API call for invalid model-train arguments');
 
     const mon = await client.callTool({ name: 'start_monitor', arguments: { market: 'watch', name: 'gs-sbga211', keywords: ['SBGA211'] } });
     assert.ok(!mon.isError, mon.content[0].text);
